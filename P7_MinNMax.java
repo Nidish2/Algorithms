@@ -7,6 +7,7 @@ public class P7_MinNMax {
 	public static int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
 	public static int size, arr[];
 
+	// Function to insert elements in the array
 	int[] insert(int[] arr) {
 		Scanner sc = new Scanner(System.in);
 		for (int i = 0; i < size; i++) {
