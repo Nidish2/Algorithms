@@ -1,76 +1,115 @@
 package daa;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class PP14_Dijkstra {
-	private int[] D;
-	private int[][] a;
 
-	public void calc(int n, int s) {
-		boolean[] visited = new boolean[n];
-		D = new int[n];
+	static class Node {
+		int vertex;
+		int weight;
 
-		// Initialize distances and visited array
-		for (int i = 0; i < n; i++) {
-			D[i] = a[s][i];
-			visited[i] = false;
+		Node(int v, int w) {
+			this.vertex = v;
+			this.weight = w;
 		}
+	}
 
-		visited[s] = true;
+	public static void dijkstra(List<List<Node>> adjList, int V, int source) {
+		int[] dist = new int[V];
+		int[] parent = new int[V];
+		boolean[] visited = new boolean[V];
 
-		for (int k = 1; k < n; k++) {
-			int minDist = Integer.MAX_VALUE;
-			int minPos = -1;
+		Arrays.fill(dist, Integer.MAX_VALUE);
+		Arrays.fill(parent, -1);
+		dist[source] = 0;
 
-			// Find the vertex with the minimum distance from the source
-			for (int i = 0; i < n; i++) {
-				if (!visited[i] && D[i] < minDist) {
-					minDist = D[i];
-					minPos = i;
+		PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(n -> n.weight));
+		pq.offer(new Node(source, 0));
+
+		while (!pq.isEmpty()) {
+			Node current = pq.poll();
+			int u = current.vertex;
+
+			if (visited[u])
+				continue;
+			visited[u] = true;
+
+			for (Node neighbor : adjList.get(u)) {
+				int v = neighbor.vertex;
+				int weight = neighbor.weight;
+
+				if (!visited[v] && dist[u] + weight < dist[v]) {
+					dist[v] = dist[u] + weight;
+					parent[v] = u;
+					pq.offer(new Node(v, dist[v]));
 				}
 			}
+		}
 
-			if (minPos == -1)
-				break; // All reachable vertices are visited
+		printShortestPaths(dist, parent, source);
+	}
 
-			visited[minPos] = true;
-
-			// Update the distances of the adjacent vertices
-			for (int i = 0; i < n; i++) {
-				if (!visited[i] && a[minPos][i] != 999 && D[minPos] + a[minPos][i] < D[i]) {
-					D[i] = D[minPos] + a[minPos][i];
-				}
+	public static void printShortestPaths(int[] dist, int[] parent, int source) {
+		System.out.println("📍 Source: " + source);
+		for (int i = 0; i < dist.length; i++) {
+			System.out.print("🛣️ To: " + i + " | Cost: ");
+			if (dist[i] == Integer.MAX_VALUE) {
+				System.out.println("Unreachable ❌");
+			} else {
+				System.out.print(dist[i] + " | Path: " + source + " ");
+				printPath(parent, i);
+				System.out.println();
 			}
 		}
 	}
 
+	private static void printPath(int[] parent, int v) {
+		if (parent[v] == -1)
+			return;
+		printPath(parent, parent[v]);
+		System.out.print("→ " + v + " ");
+	}
+
+	public static void addEdge(List<List<Node>> adjList, int u, int v, int weight) {
+		adjList.get(u).add(new Node(v, weight));
+	}
+	
+	   // NEW: Function to visualize the built graph (adjacency list)
+    public static void printGraph(List<List<Node>> adjList, int V) {
+        System.out.println("🗺️ Built Graph (Adjacency List):");
+        for (int u = 0; u < V; u++) {
+            System.out.print("Vertex " + u + " → ");
+            if (adjList.get(u).isEmpty()) {
+                System.out.println("[No neighbors]");
+            } else {
+                for (Node neighbor : adjList.get(u)) {
+                    System.out.print("(" + neighbor.vertex + ", wt: " + neighbor.weight + ") ");
+                }
+                System.out.println();
+            }
+        }
+        System.out.println("--- End of Graph ---");
+    }
+
 	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-
-		System.out.println("Enter the Number of Nodes:");
-		int n = sc.nextInt();
-		PP14_Dijkstra d = new PP14_Dijkstra();
-		d.a = new int[n][n];
-
-		System.out.println("Enter the Cost Matrix Weights:");
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				d.a[i][j] = sc.nextInt();
-				if (i != j && d.a[i][j] == 0) {
-					d.a[i][j] = 999; // Assuming 999 represents no edge
-				}
-			}
+		int V = 6;
+		List<List<Node>> adjList = new ArrayList<>();
+		for (int i = 0; i < V; i++) {
+			adjList.add(new ArrayList<>());
 		}
 
-		System.out.println("Enter the source vertex:");
-		int s = sc.nextInt();
-		d.calc(n, s);
+		// Sample edges: (u, v, weight)
+		addEdge(adjList, 0, 1, 4);
+		addEdge(adjList, 0, 2, 1);
+		addEdge(adjList, 2, 1, 2);
+		addEdge(adjList, 1, 3, 1);
+		addEdge(adjList, 2, 3, 5);
+		addEdge(adjList, 3, 4, 3);
+		addEdge(adjList, 4, 5, 1);
+		
+		printGraph(adjList, V); // Visualize the graph
 
-		sc.close();
-
-		System.out.println("Source: " + s);
-		for (int i = 0; i < n; i++) {
-			System.out.println("Destination: " + i + " MinCost: " + d.D[i]);
-		}
+		int source = 0;
+		dijkstra(adjList, V, source);
 	}
 }

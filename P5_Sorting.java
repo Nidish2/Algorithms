@@ -37,9 +37,7 @@ public class P5_Sorting {
 	}
 
 	public boolean isEmpty(int[] arr) {
-		if (arr.length <= 0)
-			return true;
-		return false;
+		return arr.length <= 0; 
 	}
 
 	public void swap(int[] arr, int pos1, int pos2) {
